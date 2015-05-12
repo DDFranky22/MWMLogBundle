@@ -10,6 +10,8 @@ namespace MWM\LogBundle\Entity;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Debug\Exception\ContextErrorException;
 
 
 /**
@@ -65,9 +67,9 @@ class Log implements LogInterface{
     private $entityType;
 
     /**
-     * @var string
+     * @var array
      *
-     * @ORM\Column(name="entity_id", type="string", length=255, nullable=true)
+     * @ORM\Column(name="entity_id", type="json_array", nullable=true)
      */
     private $entityId;
 
@@ -81,7 +83,7 @@ class Log implements LogInterface{
     /**
      * Get id
      *
-     * @return integer 
+     * @return integer
      */
     public function getId()
     {
@@ -104,7 +106,7 @@ class Log implements LogInterface{
     /**
      * Get timelog
      *
-     * @return \DateTime 
+     * @return \DateTime
      */
     public function getTimelog()
     {
@@ -127,7 +129,7 @@ class Log implements LogInterface{
     /**
      * Get user
      *
-     * @return string 
+     * @return string
      */
     public function getUser()
     {
@@ -150,7 +152,7 @@ class Log implements LogInterface{
     /**
      * Get roleUser
      *
-     * @return string 
+     * @return string
      */
     public function getRoleUser()
     {
@@ -173,7 +175,7 @@ class Log implements LogInterface{
     /**
      * Get operation
      *
-     * @return string 
+     * @return string
      */
     public function getOperation()
     {
@@ -196,7 +198,7 @@ class Log implements LogInterface{
     /**
      * Get entityType
      *
-     * @return string 
+     * @return string
      */
     public function getEntityType()
     {
@@ -206,7 +208,7 @@ class Log implements LogInterface{
     /**
      * Set entityId
      *
-     * @param string $entityId
+     * @param array $entityId
      * @return Log
      */
     public function setEntityId($entityId)
@@ -219,7 +221,7 @@ class Log implements LogInterface{
     /**
      * Get entityId
      *
-     * @return string 
+     * @return array
      */
     public function getEntityId()
     {
@@ -242,7 +244,7 @@ class Log implements LogInterface{
     /**
      * Get entityInfo
      *
-     * @return string 
+     * @return string
      */
     public function getEntityInfo()
     {
@@ -266,12 +268,21 @@ class Log implements LogInterface{
         $tmpSplit = explode("\\",$attributes->getName());
         $entityType = $tmpSplit[count($tmpSplit)-1];
         $this->setEntityType($entityType);
-        $this->setEntityId($entity->getId());
+        $this->setEntityId($attributes->getIdentifierValues($entity));
         $reflectionProperties = $attributes->getReflectionProperties( );
         $properties = array();
         foreach($reflectionProperties as $property){
-            $val = $attributes->getFieldValue($entity,$property->getName());
-            $properties[$property->getName()] = $val;
+            try{
+                $childEntity = $attributes->getFieldValue($entity,$property->getName());
+                $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($childEntity));
+                $child = $childAttributes->getIdentifierValues($childEntity);
+                $properties[$property->getName().'_AE'] = $child;
+            }
+            catch(ContextErrorException $e){
+                $val = $attributes->getFieldValue($entity,$property->getName());
+                $properties[$property->getName()] = $val;
+                continue;
+            }
         }
         $this->setEntityInfo($properties);
     }

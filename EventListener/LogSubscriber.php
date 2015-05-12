@@ -189,37 +189,7 @@ class LogSubscriber implements EventSubscriber{
         $log->setOperation($operation);
         $log->retriveUserInfo($this->token_storage->getToken());
         $log->retriveEntityInfo($em,$entity);
-        //$this->retriveUserInfo($log);
-        //$this->retriveEntityInfo($em, $log, $entity);
         $em->persist($log);
         $em->flush();
     }
-
-    private function retriveUserInfo(Log $log){
-        $token = $this->token_storage->getToken();
-        $user = "anon.";
-        $roles = array('IS_AUTHENTICATED_ANONYMOUSLY');
-        if($token!==null){
-            $user = $token->getUser();
-            $roles = $token->getRoles();
-        }
-        $log->setUser($user);
-        $log->setRoleUser($roles);
-    }
-
-    private function retriveEntityInfo(EntityManager $em, Log $log, $entity){
-        $attributes = $em->getMetadataFactory()->getMetadataFor(get_class($entity));
-        $tmpSplit = explode("\\",$attributes->getName());
-        $entityType = $tmpSplit[count($tmpSplit)-1];
-        $log->setEntityType($entityType);
-        $log->setEntityId($entity->getId());
-        $reflectionProperties = $attributes->getReflectionProperties( );
-        $properties = array();
-        foreach($reflectionProperties as $property){
-            $val = $attributes->getFieldValue($entity,$property->getName());
-            $properties[$property->getName()] = $val;
-        }
-        $log->setEntityInfo($properties);
-    }
-
 }
