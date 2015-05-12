@@ -17,6 +17,7 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use MWM\LogBundle\Entity\Log;
+use MWM\LogBundle\Entity\LogInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class LogSubscriber implements EventSubscriber{
@@ -57,7 +58,7 @@ class LogSubscriber implements EventSubscriber{
      */
     public function preRemove(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof Log)){
+        if(!($entity instanceof LogInterface)){
             $em = $eventArgs->getEntityManager();
             $this->createLog($em,$entity,'Remove');
         }
@@ -90,7 +91,7 @@ class LogSubscriber implements EventSubscriber{
      */
     public function postPersist(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof Log)){
+        if(!($entity instanceof LogInterface)){
             $em = $eventArgs->getEntityManager();
             $this->createLog($em,$entity,'New');
         }
@@ -113,7 +114,7 @@ class LogSubscriber implements EventSubscriber{
      */
     public function postUpdate(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof Log)){
+        if(!($entity instanceof LogInterface)){
             $em = $eventArgs->getEntityManager();
             $this->createLog($em,$entity,'Update');
         }
@@ -186,8 +187,10 @@ class LogSubscriber implements EventSubscriber{
         $log = new Log();
         $log->setTimelog(new \DateTime());
         $log->setOperation($operation);
-        $this->retriveUserInfo($log);
-        $this->retriveEntityInfo($em, $log, $entity);
+        $log->retriveUserInfo($this->token_storage->getToken());
+        $log->retriveEntityInfo($em,$entity);
+        //$this->retriveUserInfo($log);
+        //$this->retriveEntityInfo($em, $log, $entity);
         $em->persist($log);
         $em->flush();
     }

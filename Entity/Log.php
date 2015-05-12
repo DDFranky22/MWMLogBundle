@@ -8,6 +8,7 @@
 
 namespace MWM\LogBundle\Entity;
 
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping as ORM;
 
 
@@ -18,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity(repositoryClass="MWM\LogBundle\Repository\LogRepository")
  */
 
-class Log {
+class Log implements LogInterface{
     /**
      * @var integer
      *
@@ -247,4 +248,32 @@ class Log {
     {
         return $this->entityInfo;
     }
+
+    public function retriveUserInfo($token){
+        $user = "anon.";
+        $roles = array('IS_AUTHENTICATED_ANONYMOUSLY');
+        if($token!==null){
+            $user = $token->getUser();
+            $roles = $token->getRoles();
+        }
+        $this->setUser($user);
+        $this->setRoleUser($roles);
+    }
+
+
+    public function retriveEntityInfo(EntityManager $em, $entity){
+        $attributes = $em->getMetadataFactory()->getMetadataFor(get_class($entity));
+        $tmpSplit = explode("\\",$attributes->getName());
+        $entityType = $tmpSplit[count($tmpSplit)-1];
+        $this->setEntityType($entityType);
+        $this->setEntityId($entity->getId());
+        $reflectionProperties = $attributes->getReflectionProperties( );
+        $properties = array();
+        foreach($reflectionProperties as $property){
+            $val = $attributes->getFieldValue($entity,$property->getName());
+            $properties[$property->getName()] = $val;
+        }
+        $this->setEntityInfo($properties);
+    }
+
 }
