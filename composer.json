@@ -29,6 +29,7 @@
   "autoload": {
     "psr-0": { "MWM\\LogBundle\\": "" }
   },
+  "target-dir": "MWM/LogBundle/",
   "extra":{
     "branch-alias": {
       "dev-master": "0.0.x-dev"
