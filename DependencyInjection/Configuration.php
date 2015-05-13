@@ -15,14 +15,25 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface{
 
+    private $connection;
+
+    public function __constructor($defaultConnection){
+        $this->connection = $defaultConnection;
+    }
+
     public function getConfigTreeBuilder(){
 
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('mwm_log');
-
         $rootNode
             ->children()
-                ->scalarNode('connection')->end();
+                ->scalarNode('log_entities')
+                ->end()
+                ->scalarNode('db_connection')
+                    ->defaultValue($this->connection)
+                ->end()
+            ->end()
+        ;
 
         return $treeBuilder;
     }

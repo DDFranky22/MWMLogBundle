@@ -2,6 +2,8 @@ services:
     log.subscriber:
         class: MWM\LogBundle\EventListener\LogSubscriber
         arguments:
-            - "@security.token_storage"
+            -   "@security.token_storage"
+            -   "%mwm_log.log_entities%"
+            -   "%kernel.root_dir%"
         tags:
-            - { name: doctrine.event_subscriber, connection: default   }
+            - { name: doctrine.event_subscriber }

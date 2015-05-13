@@ -23,12 +23,28 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class LogSubscriber implements EventSubscriber{
 
     private $token_storage;
+    private $connection;
+
+    private $loggableEntities;
 
     /**
      * @param TokenStorageInterface $token_storage
+     * @param $loggableEntities
+     * @param $kernelDir
      */
-    public function __construct(TokenStorageInterface $token_storage){
+    public function __construct(TokenStorageInterface $token_storage, $loggableEntities, $kernel){
         $this->token_storage = $token_storage;
+
+        $this->loggableEntities = array();
+        if(count($loggableEntities)==0){
+            $this->loggableEntities[] = 'all';
+        }
+        else{
+            foreach($loggableEntities as $entityStr){
+                $tempEntity = new $entityStr();
+                array_push($this->loggableEntities, $tempEntity);
+            }
+        }
     }
 
     public function getSubscribedEvents(){
@@ -59,7 +75,7 @@ class LogSubscriber implements EventSubscriber{
     public function preRemove(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager();
+            $em = $eventArgs->getEntityManager('log');
             $this->createLog($em,$entity,'Remove');
         }
     }
@@ -92,7 +108,7 @@ class LogSubscriber implements EventSubscriber{
     public function postPersist(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager();
+            $em = $eventArgs->getEntityManager('log');
             $this->createLog($em,$entity,'New');
         }
     }
@@ -115,7 +131,7 @@ class LogSubscriber implements EventSubscriber{
     public function postUpdate(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager();
+            $em = $eventArgs->getEntityManager('log');
             $this->createLog($em,$entity,'Update');
         }
     }
