@@ -128,7 +128,7 @@ class Log implements LogInterface{
     /**
      * Get user
      *
-     * @return string
+     * @return string 
      */
     public function getUser()
     {
@@ -151,7 +151,7 @@ class Log implements LogInterface{
     /**
      * Get roleUser
      *
-     * @return string
+     * @return string 
      */
     public function getRoleUser()
     {
