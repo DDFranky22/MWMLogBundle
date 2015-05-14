@@ -18,12 +18,13 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use MWM\LogBundle\Entity\Log;
 use MWM\LogBundle\Entity\LogInterface;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class LogSubscriber implements EventSubscriber{
 
     private $token_storage;
-    private $connection;
+    private $dbConnection;
 
     private $loggableEntities;
 
@@ -32,19 +33,40 @@ class LogSubscriber implements EventSubscriber{
      * @param $loggableEntities
      * @param $kernelDir
      */
-    public function __construct(TokenStorageInterface $token_storage, $loggableEntities, $kernel){
+    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection){
         $this->token_storage = $token_storage;
-
+        $this->dbConnection = $dbConnection;
         $this->loggableEntities = array();
         if(count($loggableEntities)==0){
-            $this->loggableEntities[] = 'all';
+            $this->loggableEntities['all'] = true;
         }
         else{
             foreach($loggableEntities as $entityStr){
-                $tempEntity = new $entityStr();
-                array_push($this->loggableEntities, $tempEntity);
+                /*$tempEntity = new $entityStr();
+                array_push($this->loggableEntities, $tempEntity);*/
+                array_push($this->loggableEntities, $entityStr);
             }
         }
+    }
+
+
+    public function canILogThis($object){
+        if(isset($this->loggableEntities['all'])){
+            return true;
+        }
+        else{
+            try{
+                foreach($this->loggableEntities as $logEntity){
+                    if(is_a($object, $logEntity)){
+                        return true;
+                    }
+                }
+            }
+            catch(Exception $e){
+                return false;
+            }
+        }
+        return false;
     }
 
     public function getSubscribedEvents(){
@@ -75,8 +97,10 @@ class LogSubscriber implements EventSubscriber{
     public function preRemove(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager('log');
-            $this->createLog($em,$entity,'Remove');
+            if($this->canILogThis($entity)){
+                $em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($em,$entity,'Remove');
+            }
         }
     }
 
@@ -108,8 +132,10 @@ class LogSubscriber implements EventSubscriber{
     public function postPersist(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager('log');
-            $this->createLog($em,$entity,'New');
+            if($this->canILogThis($entity)) {
+                $em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($em, $entity, 'New');
+            }
         }
     }
 
@@ -131,8 +157,10 @@ class LogSubscriber implements EventSubscriber{
     public function postUpdate(LifecycleEventArgs $eventArgs){
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
-            $em = $eventArgs->getEntityManager('log');
-            $this->createLog($em,$entity,'Update');
+            if($this->canILogThis($entity)) {
+                $em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($em,$entity,'Update');
+            }
         }
     }
 

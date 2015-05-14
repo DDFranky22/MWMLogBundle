@@ -27,7 +27,8 @@ class Configuration implements ConfigurationInterface{
         $rootNode = $treeBuilder->root('mwm_log');
         $rootNode
             ->children()
-                ->scalarNode('log_entities')
+                ->variableNode('log_entities')
+                    ->defaultValue(array())
                 ->end()
                 ->scalarNode('db_connection')
                     ->defaultValue($this->connection)

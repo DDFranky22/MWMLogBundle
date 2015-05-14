@@ -4,6 +4,6 @@ services:
         arguments:
             -   "@security.token_storage"
             -   "%mwm_log.log_entities%"
-            -   "%kernel.root_dir%"
+            -   "%%mwm_log.db_connection%"
         tags:
             - { name: doctrine.event_subscriber }
