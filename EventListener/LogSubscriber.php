@@ -30,8 +30,8 @@ class LogSubscriber implements EventSubscriber{
 
     /**
      * @param TokenStorageInterface $token_storage
-     * @param $loggableEntities
-     * @param $kernelDir
+     * @param array $loggableEntities
+     * @param $dbConnection
      */
     public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection){
         $this->token_storage = $token_storage;
