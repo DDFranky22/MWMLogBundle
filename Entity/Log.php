@@ -20,7 +20,7 @@ use Symfony\Component\Debug\Exception\ContextErrorException;
  * @ORM\Entity(repositoryClass="MWM\LogBundle\Repository\LogRepository")
  */
 
-class Log implements LogInterface{
+class Log{
     /**
      * @var integer
      *
