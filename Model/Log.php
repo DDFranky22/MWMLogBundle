@@ -6,76 +6,59 @@
  * Time: 11.32
  */
 
-namespace MWM\LogBundle\Entity;
+namespace MWM\LogBundle\Model;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 
 
-/**
- * Log
- *
- * @ORM\Table(name="log")
- * @ORM\Entity(repositoryClass="MWM\LogBundle\Repository\LogRepository")
- */
-
-class Log implements LogInterface{
+abstract class Log implements LogInterface{
     /**
      * @var integer
      *
-     * @ORM\Column(name="id", type="bigint", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     private $id;
 
     /**
      * @var \DateTime
      *
-     * @ORM\Column(name="time_log", type="datetime", nullable=true)
      */
     private $timelog;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="user", type="string", length=255, nullable=true)
      */
     private $user;
 
     /**
      * @var array
      *
-     * @ORM\Column(name="role_user", type="json_array", length=4294967295, nullable=true)
      */
     private $roleUser;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="operation", type="string", length=255, nullable=true)
      */
     private $operation;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="entity_type", type="string", length=255, nullable=true)
      */
     private $entityType;
 
     /**
      * @var array
-     *
-     * @ORM\Column(name="entity_id", type="json_array", nullable=true)
+     *)
      */
     private $entityId;
 
     /**
      * @var array
      *
-     * @ORM\Column(name="entity_info", type="json_array", nullable=true)
      */
     private $entityInfo;
 

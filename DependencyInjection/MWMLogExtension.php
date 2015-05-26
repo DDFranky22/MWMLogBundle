@@ -18,20 +18,30 @@ class MWMLogExtension extends Extension{
 
     public function load(array $configs, ContainerBuilder $container){
 
-        $configuration = $this->getConfiguration($configs, $container);
+        $processor = new Processor();
+        $configuration = new Configuration();
 
-        $config = $this->processConfiguration($configuration, $configs);
+        //$configuration = $this->getConfiguration($configs, $container);
+
+        $config = $processor->processConfiguration($configuration, $configs);
 
         $loader = new YamlFileLoader(
             $container,
             new FileLocator(__DIR__.'/../Resources/config')
         );
 
+        $container->setParameter('mwm_log.log_class', $config['log_class']);
+
         $container->setParameter('mwm_log.db_connection', $config['db_connection']);
 
         $container->setParameter('mwm_log.log_entities', $config['log_entities']);
 
-        $loader->load('services.yml');
+        $container->setParameter('mwm_log.model_manager_name', $config['model_manager_name']);
+
+        if ('custom' !== $config['db_driver']) {
+            $loader->load(sprintf('%s.yml', $config['db_driver']));
+            $container->setParameter($this->getAlias() . '.backend_type_' . $config['db_driver'], true);
+        }
     }
 
     public function getAlias(){

@@ -10,14 +10,15 @@ namespace MWM\LogBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use MWM\LogBundle\Entity\Log;
-use MWM\LogBundle\Entity\LogInterface;
+//use MWM\LogBundle\Entity\Log;
+use MWM\LogBundle\Model\LogInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -28,12 +29,14 @@ class LogSubscriber implements EventSubscriber{
 
     private $loggableEntities;
 
+    private $logClass;
+
     /**
      * @param TokenStorageInterface $token_storage
      * @param array $loggableEntities
      * @param $dbConnection
      */
-    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection){
+    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection, $logClass){
         $this->token_storage = $token_storage;
         $this->dbConnection = $dbConnection;
         $this->loggableEntities = array();
@@ -47,6 +50,7 @@ class LogSubscriber implements EventSubscriber{
                 array_push($this->loggableEntities, $entityStr);
             }
         }
+        $this->logClass = $logClass;
     }
 
 
@@ -228,12 +232,18 @@ class LogSubscriber implements EventSubscriber{
     }
 
     private function createLog(EntityManager $em, $entity, $operation){
-        $log = new Log();
-        $log->setTimelog(new \DateTime());
-        $log->setOperation($operation);
-        $log->retriveUserInfo($this->token_storage->getToken());
-        $log->retriveEntityInfo($em,$entity);
-        $em->persist($log);
-        $em->flush();
+        $logClass = $this->logClass;
+        $log = new $logClass();
+        if($log instanceof LogInterface){
+            $log->setTimelog(new \DateTime());
+            $log->setOperation($operation);
+            $log->retriveUserInfo($this->token_storage->getToken());
+            $log->retriveEntityInfo($em,$entity);
+            $em->persist($log);
+            $em->flush();
+        }
+        else{
+            throw new EntityNotFoundException;
+        }
     }
 }

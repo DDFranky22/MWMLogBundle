@@ -6,12 +6,12 @@
  * Time: 09.32
  */
 
-namespace MWM\LogBundle\Entity;
+namespace MWM\LogBundle\Model;
 
 
 interface LogInterface {
 
-    public function getId();
+    //public function getId();
 
     public function getTimelog();
 

@@ -25,13 +25,32 @@ class Configuration implements ConfigurationInterface{
 
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('mwm_log');
+
+        $supportedDrivers = array('orm', 'mongodb', 'couchdb', 'propel', 'custom');
+
         $rootNode
             ->children()
+                ->scalarNode('log_class')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
                 ->variableNode('log_entities')
                     ->defaultValue(array())
                 ->end()
+                ->scalarNode('db_driver')
+                    ->validate()
+                        ->ifNotInArray($supportedDrivers)
+                        ->thenInvalid('The driver %s is not supported. Please choose one of '.json_encode($supportedDrivers))
+                        ->end()
+                    ->cannotBeOverwritten()
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                ->end()
                 ->scalarNode('db_connection')
                     ->defaultValue($this->connection)
+                ->end()
+                ->scalarNode('model_manager_name')
+                    ->defaultNull()
                 ->end()
             ->end()
         ;
