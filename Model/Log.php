@@ -10,6 +10,7 @@ namespace MWM\LogBundle\Model;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 
 
@@ -256,6 +257,9 @@ abstract class Log implements LogInterface{
         foreach($reflectionProperties as $property){
             try{
                 $childEntity = $attributes->getFieldValue($entity,$property->getName());
+                if($childEntity instanceof PersistentCollection){
+                    continue;
+                }
                 $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($childEntity));
                 $child = $childAttributes->getIdentifierValues($childEntity);
                 $properties[$property->getName().'_AE'] = $child;
