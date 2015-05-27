@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+
+    <mapped-superclass name="MWM\LogBundle\Model\Log" indexed="true">
+
+        <field name="timelog" type="datetime" nullable="true"/>
+
+        <field name="user" type="string" nullable="true"/>
+
+        <field name="roleUser" type="json_array" nullable="true"/>
+
+        <field name="operation" type="string" nullable="true"/>
+
+        <field name="entityType" type="string" nullable="true"/>
+
+        <field name="entityId" type="json_array" nullable="true"/>
+
+        <field name="entityInfo" type="json_array" nullable="true"/>
+
+    </mapped-superclass>
+
+</doctrine-mapping>
