@@ -259,7 +259,8 @@ class LogSubscriber implements EventSubscriber{
     /**
      * Creation of the log and logging
      *
-     * The main purpose of this function is to create the $log object based on the class defined by the user and to map the base fields
+     * The main purpose of this function is to create the $log object based on the class defined by the user and to map the base fields.
+     * Every function that retrive and extract info from the entity is on the Log class
      *
      * @param EntityManager $em
      * @param $entity
