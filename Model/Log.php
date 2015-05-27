@@ -258,11 +258,21 @@ abstract class Log implements LogInterface{
             try{
                 $childEntity = $attributes->getFieldValue($entity,$property->getName());
                 if($childEntity instanceof PersistentCollection){
-                    continue;
+                    $collection = array();
+                    foreach($childEntity as $item){
+                        $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($item));
+                        $child = $childAttributes->getIdentifierValues($item);
+                        $itemSplit = explode("\\",$childAttributes->getName());
+                        $itemClass = $itemSplit[count($itemSplit)-1];
+                        $collection[$itemClass.'_CI'] = $child;
+                    }
+                    $properties[$property->getName().'_C'] = $collection;
                 }
-                $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($childEntity));
-                $child = $childAttributes->getIdentifierValues($childEntity);
-                $properties[$property->getName().'_AE'] = $child;
+                else{
+                    $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($childEntity));
+                    $child = $childAttributes->getIdentifierValues($childEntity);
+                    $properties[$property->getName().'_AE'] = $child;
+                }
             }
             catch(ContextErrorException $e){
                 $val = $attributes->getFieldValue($entity,$property->getName());
