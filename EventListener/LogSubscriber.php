@@ -10,30 +10,48 @@ namespace MWM\LogBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use MWM\LogBundle\Entity\Log;
-use MWM\LogBundle\Entity\LogInterface;
+use MWM\LogBundle\Model\LogInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
+/**
+ * Class LogSubscriber
+ *
+ * Subscriber that listen to every possible doctrine event and create a log to persist on db
+ *
+ * @package MWM\LogBundle\EventListener
+ */
 
 class LogSubscriber implements EventSubscriber{
 
     private $token_storage;
+
     private $dbConnection;
 
     private $loggableEntities;
 
+    private $logClass;
+
     /**
+     * Service construct
+     *
+     * The construct of this service consider also all the loggable entities and alternative db connection.
+     * If no array for $loggableEntities is passed, every entity will be logged.
+     * $logClass is required.
+     *
      * @param TokenStorageInterface $token_storage
      * @param array $loggableEntities
      * @param $dbConnection
+     * @param $logClass
      */
-    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection){
+    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection, $logClass){
         $this->token_storage = $token_storage;
         $this->dbConnection = $dbConnection;
         $this->loggableEntities = array();
@@ -42,33 +60,16 @@ class LogSubscriber implements EventSubscriber{
         }
         else{
             foreach($loggableEntities as $entityStr){
-                /*$tempEntity = new $entityStr();
-                array_push($this->loggableEntities, $tempEntity);*/
                 array_push($this->loggableEntities, $entityStr);
             }
         }
+        $this->logClass = $logClass;
     }
 
-
-    public function canILogThis($object){
-        if(isset($this->loggableEntities['all'])){
-            return true;
-        }
-        else{
-            try{
-                foreach($this->loggableEntities as $logEntity){
-                    if(is_a($object, $logEntity)){
-                        return true;
-                    }
-                }
-            }
-            catch(Exception $e){
-                return false;
-            }
-        }
-        return false;
-    }
-
+    /**
+     * {@inheritdoc}
+     * @return array
+     */
     public function getSubscribedEvents(){
         return [
             'preRemove',
@@ -199,7 +200,6 @@ class LogSubscriber implements EventSubscriber{
      * @param PreFlushEventArgs $eventArgs
      */
     public function preFlush(PreFlushEventArgs $eventArgs){
-
     }
 
     /**
@@ -227,13 +227,59 @@ class LogSubscriber implements EventSubscriber{
     public function onClear(OnClearEventArgs $eventArgs){
     }
 
+
+    /**
+     * can I log this?
+     *
+     * Good question! This function check if the entity is inside the list of loggable entities.
+     * (P.s. take a cookie! You've earned it!)
+     *
+     * @param $object
+     * @return bool
+     */
+    private function canILogThis($object){
+        if(isset($this->loggableEntities['all'])){
+            return true;
+        }
+        else{
+            try{
+                foreach($this->loggableEntities as $logEntity){
+                    if(is_a($object, $logEntity)){
+                        return true;
+                    }
+                }
+            }
+            catch(Exception $e){
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Creation of the log and logging
+     *
+     * The main purpose of this function is to create the $log object based on the class defined by the user and to map the base fields.
+     * Every function that retrive and extract info from the entity is on the Log class
+     *
+     * @param EntityManager $em
+     * @param $entity
+     * @param $operation
+     * @throws EntityNotFoundException
+     */
     private function createLog(EntityManager $em, $entity, $operation){
-        $log = new Log();
-        $log->setTimelog(new \DateTime());
-        $log->setOperation($operation);
-        $log->retriveUserInfo($this->token_storage->getToken());
-        $log->retriveEntityInfo($em,$entity);
-        $em->persist($log);
-        $em->flush();
+        $logClass = $this->logClass;
+        $log = new $logClass();
+        if($log instanceof LogInterface){
+            $log->setTimelog(new \DateTime());
+            $log->setOperation($operation);
+            $log->retriveUserInfo($this->token_storage->getToken());
+            $log->retriveEntityInfo($em,$entity);
+            $em->persist($log);
+            $em->flush();
+        }
+        else{
+            throw new EntityNotFoundException;
+        }
     }
 }
