@@ -9,7 +9,6 @@
 namespace MWM\LogBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
