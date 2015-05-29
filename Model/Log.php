@@ -53,7 +53,7 @@ abstract class Log implements LogInterface{
 
     /**
      * @var array
-     *)
+     *
      */
     private $entityId;
 
