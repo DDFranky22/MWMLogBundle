@@ -8,3 +8,4 @@ services:
             -   "%mwm_log.log_class%"
         tags:
             - { name: doctrine.event_subscriber }
+

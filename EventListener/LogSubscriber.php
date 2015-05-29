@@ -39,6 +39,7 @@ class LogSubscriber implements EventSubscriber{
 
     private $logClass;
 
+    private $em;
     /**
      * Service construct
      *
@@ -99,8 +100,8 @@ class LogSubscriber implements EventSubscriber{
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
             if($this->canILogThis($entity)){
-                $em = $eventArgs->getEntityManager($this->dbConnection);
-                $this->createLog($em,$entity,'Remove');
+                $this->em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($entity,'Remove');
             }
         }
     }
@@ -134,8 +135,8 @@ class LogSubscriber implements EventSubscriber{
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
             if($this->canILogThis($entity)) {
-                $em = $eventArgs->getEntityManager($this->dbConnection);
-                $this->createLog($em, $entity, 'New');
+                $this->em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($entity, 'New');
             }
         }
     }
@@ -159,8 +160,8 @@ class LogSubscriber implements EventSubscriber{
         $entity = $eventArgs->getEntity();
         if(!($entity instanceof LogInterface)){
             if($this->canILogThis($entity)) {
-                $em = $eventArgs->getEntityManager($this->dbConnection);
-                $this->createLog($em,$entity,'Update');
+                $this->em = $eventArgs->getEntityManager($this->dbConnection);
+                $this->createLog($entity,'Update');
             }
         }
     }
@@ -262,19 +263,19 @@ class LogSubscriber implements EventSubscriber{
      * The main purpose of this function is to create the $log object based on the class defined by the user and to map the base fields.
      * Every function that retrive and extract info from the entity is on the Log class
      *
-     * @param EntityManager $em
      * @param $entity
      * @param $operation
      * @throws EntityNotFoundException
      */
-    private function createLog(EntityManager $em, $entity, $operation){
+    private function createLog($entity, $operation){
+        $em = $this->em;
         $logClass = $this->logClass;
         $log = new $logClass();
         if($log instanceof LogInterface){
             $log->setTimelog(new \DateTime());
             $log->setOperation($operation);
             $log->retriveUserInfo($this->token_storage->getToken());
-            $log->retriveEntityInfo($em,$entity);
+            $log->retriveEntityInfo($em->getMetadataFactory(),$entity);
             $em->persist($log);
             $em->flush();
         }
