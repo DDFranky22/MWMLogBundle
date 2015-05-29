@@ -9,9 +9,9 @@
 namespace MWM\LogBundle\Model;
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Debug\Exception\ContextErrorException;
+use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface;
 
 
 abstract class Log implements LogInterface{
@@ -234,7 +234,7 @@ abstract class Log implements LogInterface{
         return $this->entityInfo;
     }
 
-    public function retriveUserInfo($token){
+    public function retriveUserInfo(TokenStorageInterface $token){
         $user = "anon.";
         $roles = array('IS_AUTHENTICATED_ANONYMOUSLY');
         if($token!==null){
@@ -246,8 +246,8 @@ abstract class Log implements LogInterface{
     }
 
 
-    public function retriveEntityInfo(EntityManager $em, $entity){
-        $attributes = $em->getMetadataFactory()->getMetadataFor(get_class($entity));
+    public function retriveEntityInfo(MetadataFactoryInterface $factory, $entity){
+        $attributes = $factory->getMetadataFor(get_class($entity));
         $tmpSplit = explode("\\",$attributes->getName());
         $entityType = $tmpSplit[count($tmpSplit)-1];
         $this->setEntityType($entityType);
@@ -260,7 +260,7 @@ abstract class Log implements LogInterface{
                 if($childEntity instanceof PersistentCollection){
                     $collection = array();
                     foreach($childEntity as $item){
-                        $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($item));
+                        $childAttributes = $factory->getMetadataFor(get_class($item));
                         $child = $childAttributes->getIdentifierValues($item);
                         $itemSplit = explode("\\",$childAttributes->getName());
                         $itemClass = $itemSplit[count($itemSplit)-1];
@@ -269,7 +269,7 @@ abstract class Log implements LogInterface{
                     $properties[$property->getName().'_C'] = $collection;
                 }
                 else{
-                    $childAttributes = $em->getMetadataFactory()->getMetadataFor(get_class($childEntity));
+                    $childAttributes = $factory->getMetadataFor(get_class($childEntity));
                     $child = $childAttributes->getIdentifierValues($childEntity);
                     $properties[$property->getName().'_AE'] = $child;
                 }

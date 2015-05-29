@@ -21,8 +21,6 @@ class MWMLogExtension extends Extension{
         $processor = new Processor();
         $configuration = new Configuration();
 
-        //$configuration = $this->getConfiguration($configs, $container);
-
         $config = $processor->processConfiguration($configuration, $configs);
 
         $loader = new YamlFileLoader(
