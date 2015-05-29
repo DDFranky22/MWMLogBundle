@@ -11,8 +11,6 @@ namespace MWM\LogBundle\Model;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 
 abstract class Log implements LogInterface{
     /**
@@ -234,7 +232,7 @@ abstract class Log implements LogInterface{
         return $this->entityInfo;
     }
 
-    public function retriveUserInfo(TokenStorageInterface $token){
+    public function retriveUserInfo($token){
         $user = "anon.";
         $roles = array('IS_AUTHENTICATED_ANONYMOUSLY');
         if($token!==null){
