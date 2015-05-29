@@ -8,10 +8,10 @@
 
 namespace MWM\LogBundle\Model;
 
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 
 abstract class Log implements LogInterface{
