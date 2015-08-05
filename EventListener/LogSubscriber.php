@@ -18,6 +18,7 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use MWM\LogBundle\Model\LogInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -29,6 +30,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 
 class LogSubscriber implements EventSubscriber{
+
+    private $container;
 
     private $token_storage;
 
@@ -46,13 +49,13 @@ class LogSubscriber implements EventSubscriber{
      * If no array for $loggableEntities is passed, every entity will be logged.
      * $logClass is required.
      *
-     * @param TokenStorageInterface $token_storage
+     * @param Container $container
      * @param array $loggableEntities
      * @param $dbConnection
      * @param $logClass
      */
-    public function __construct(TokenStorageInterface $token_storage, array $loggableEntities, $dbConnection, $logClass){
-        $this->token_storage = $token_storage;
+    public function __construct(Container $container, array $loggableEntities, $dbConnection, $logClass){
+        $this->container = $container;
         $this->dbConnection = $dbConnection;
         $this->loggableEntities = array();
         if(count($loggableEntities)==0){
@@ -64,6 +67,11 @@ class LogSubscriber implements EventSubscriber{
             }
         }
         $this->logClass = $logClass;
+    }
+
+    public function retriveTokenStorage()
+    {
+        $this->token_storage = $this->container->get('security.token_storage');
     }
 
     /**
@@ -267,6 +275,7 @@ class LogSubscriber implements EventSubscriber{
      * @throws EntityNotFoundException
      */
     private function createLog($entity, $operation){
+        $this->retriveTokenStorage();
         $em = $this->em;
         $logClass = $this->logClass;
         $log = new $logClass();
