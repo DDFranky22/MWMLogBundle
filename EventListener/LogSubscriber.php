@@ -77,8 +77,6 @@ class LogSubscriber implements EventSubscriber{
     /**
      * {@inheritdoc}
      * @return array
-     *
-     * test new pc
      */
     public function getSubscribedEvents(){
         return [
