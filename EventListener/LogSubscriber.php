@@ -9,6 +9,7 @@
 namespace MWM\LogBundle\EventListener;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
@@ -16,6 +17,7 @@ use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
+use MWM\LogBundle\Model\Log;
 use MWM\LogBundle\Model\LogInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
@@ -28,11 +30,14 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  *
  * @package MWM\LogBundle\EventListener
  */
-
-class LogSubscriber implements EventSubscriber{
+class LogSubscriber implements EventSubscriber
+{
 
     private $container;
 
+    /**
+     * @var TokenStorageInterface
+     */
     private $token_storage;
 
     private $dbConnection;
@@ -41,7 +46,11 @@ class LogSubscriber implements EventSubscriber{
 
     private $logClass;
 
+    /**
+     * @var EntityManager
+     */
     private $em;
+
     /**
      * Service construct
      *
@@ -54,15 +63,15 @@ class LogSubscriber implements EventSubscriber{
      * @param $dbConnection
      * @param $logClass
      */
-    public function __construct(Container $container, array $loggableEntities, $dbConnection, $logClass){
+    public function __construct(Container $container, array $loggableEntities, $dbConnection, $logClass)
+    {
         $this->container = $container;
         $this->dbConnection = $dbConnection;
         $this->loggableEntities = array();
-        if(count($loggableEntities)==0){
+        if (count($loggableEntities) == 0) {
             $this->loggableEntities['all'] = true;
-        }
-        else{
-            foreach($loggableEntities as $entityStr){
+        } else {
+            foreach ($loggableEntities as $entityStr) {
                 array_push($this->loggableEntities, $entityStr);
             }
         }
@@ -78,7 +87,8 @@ class LogSubscriber implements EventSubscriber{
      * {@inheritdoc}
      * @return array
      */
-    public function getSubscribedEvents(){
+    public function getSubscribedEvents()
+    {
         return [
             'preRemove',
             'postRemove',
@@ -103,12 +113,13 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function preRemove(LifecycleEventArgs $eventArgs){
+    public function preRemove(LifecycleEventArgs $eventArgs)
+    {
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof LogInterface)){
-            if($this->canILogThis($entity)){
+        if (!($entity instanceof LogInterface)) {
+            if ($this->canILogThis($entity)) {
                 $this->em = $eventArgs->getEntityManager($this->dbConnection);
-                $this->createLog($entity,'Remove');
+                $this->createLog($entity, 'Remove');
             }
         }
     }
@@ -119,7 +130,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function postRemove(LifecycleEventArgs $eventArgs){
+    public function postRemove(LifecycleEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -128,7 +140,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function prePersist(LifecycleEventArgs $eventArgs){
+    public function prePersist(LifecycleEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -138,10 +151,11 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function postPersist(LifecycleEventArgs $eventArgs){
+    public function postPersist(LifecycleEventArgs $eventArgs)
+    {
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof LogInterface)){
-            if($this->canILogThis($entity)) {
+        if (!($entity instanceof LogInterface)) {
+            if ($this->canILogThis($entity)) {
                 $this->em = $eventArgs->getEntityManager($this->dbConnection);
                 $this->createLog($entity, 'New');
             }
@@ -154,7 +168,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function preUpdate(LifecycleEventArgs $eventArgs){
+    public function preUpdate(LifecycleEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -163,12 +178,13 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function postUpdate(LifecycleEventArgs $eventArgs){
+    public function postUpdate(LifecycleEventArgs $eventArgs)
+    {
         $entity = $eventArgs->getEntity();
-        if(!($entity instanceof LogInterface)){
-            if($this->canILogThis($entity)) {
+        if (!($entity instanceof LogInterface)) {
+            if ($this->canILogThis($entity)) {
                 $this->em = $eventArgs->getEntityManager($this->dbConnection);
-                $this->createLog($entity,'Update');
+                $this->createLog($entity, 'Update');
             }
         }
     }
@@ -179,7 +195,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LifecycleEventArgs $eventArgs
      */
-    public function postLoad(LifecycleEventArgs $eventArgs){
+    public function postLoad(LifecycleEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -188,7 +205,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LoadClassMetadataEventArgs $eventArgs
      */
-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs){
+    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -198,7 +216,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param LoadClassMetadataEventArgs $eventArgs
      */
-    public function onClassMetadataNotFound(LoadClassMetadataEventArgs $eventArgs){
+    public function onClassMetadataNotFound(LoadClassMetadataEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -207,7 +226,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param PreFlushEventArgs $eventArgs
      */
-    public function preFlush(PreFlushEventArgs $eventArgs){
+    public function preFlush(PreFlushEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -216,7 +236,8 @@ class LogSubscriber implements EventSubscriber{
      *
      * @param OnFlushEventArgs $eventArgs
      */
-    public function onFlush(OnFlushEventArgs $eventArgs){
+    public function onFlush(OnFlushEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -224,7 +245,8 @@ class LogSubscriber implements EventSubscriber{
      * This event is not a lifecycle callback.
      * @param PostFlushEventArgs $eventArgs
      */
-    public function postFlush(PostFlushEventArgs $eventArgs){
+    public function postFlush(PostFlushEventArgs $eventArgs)
+    {
     }
 
     /**
@@ -232,7 +254,8 @@ class LogSubscriber implements EventSubscriber{
      * This event is not a lifecycle callback.
      * @param OnClearEventArgs $eventArgs
      */
-    public function onClear(OnClearEventArgs $eventArgs){
+    public function onClear(OnClearEventArgs $eventArgs)
+    {
     }
 
 
@@ -245,22 +268,22 @@ class LogSubscriber implements EventSubscriber{
      * @param $object
      * @return bool
      */
-    private function canILogThis($object){
-        if(isset($this->loggableEntities['all'])){
+    private function canILogThis($object)
+    {
+        if (isset($this->loggableEntities['all'])) {
             return true;
-        }
-        else{
-            try{
-                foreach($this->loggableEntities as $logEntity){
-                    if(is_a($object, $logEntity)){
+        } else {
+            try {
+                foreach ($this->loggableEntities as $logEntity) {
+                    if (is_a($object, $logEntity)) {
                         return true;
                     }
                 }
-            }
-            catch(Exception $e){
+            } catch (Exception $e) {
                 return false;
             }
         }
+
         return false;
     }
 
@@ -274,20 +297,21 @@ class LogSubscriber implements EventSubscriber{
      * @param $operation
      * @throws EntityNotFoundException
      */
-    private function createLog($entity, $operation){
+    private function createLog($entity, $operation)
+    {
         $this->retriveTokenStorage();
         $em = $this->em;
         $logClass = $this->logClass;
+        /** @var Log $log */
         $log = new $logClass();
-        if($log instanceof LogInterface){
+        if ($log instanceof LogInterface) {
             $log->setTimelog(new \DateTime());
             $log->setOperation($operation);
             $log->retriveUserInfo($this->token_storage->getToken());
-            $log->retriveEntityInfo($em->getMetadataFactory(),$entity);
+            $log->retriveEntityInfo($em->getMetadataFactory(), $entity);
             $em->persist($log);
             $em->flush();
-        }
-        else{
+        } else {
             throw new EntityNotFoundException;
         }
     }
