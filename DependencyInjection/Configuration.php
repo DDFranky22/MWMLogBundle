@@ -19,8 +19,6 @@ class Configuration implements ConfigurationInterface
 
     public function __constructor($defaultConnection)
     {
-        //add nothing
-        //add still nothing
         $this->connection = $defaultConnection;
     }
 
