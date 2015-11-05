@@ -12,7 +12,8 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 
-abstract class Log implements LogInterface{
+abstract class Log implements LogInterface
+{
     /**
      * @var integer
      *
@@ -110,7 +111,7 @@ abstract class Log implements LogInterface{
     /**
      * Get user
      *
-     * @return string 
+     * @return string
      */
     public function getUser()
     {
@@ -133,7 +134,7 @@ abstract class Log implements LogInterface{
     /**
      * Get roleUser
      *
-     * @return string 
+     * @return string
      */
     public function getRoleUser()
     {
@@ -232,10 +233,11 @@ abstract class Log implements LogInterface{
         return $this->entityInfo;
     }
 
-    public function retriveUserInfo($token){
+    public function retriveUserInfo($token)
+    {
         $user = "anon.";
         $roles = array('IS_AUTHENTICATED_ANONYMOUSLY');
-        if($token!==null){
+        if ($token !== null) {
             $user = $token->getUser();
             $roles = $token->getRoles();
         }
@@ -244,36 +246,35 @@ abstract class Log implements LogInterface{
     }
 
 
-    public function retriveEntityInfo(ClassMetadataFactory $factory, $entity){
+    public function retriveEntityInfo(ClassMetadataFactory $factory, $entity)
+    {
         $attributes = $factory->getMetadataFor(get_class($entity));
-        $tmpSplit = explode("\\",$attributes->getName());
-        $entityType = $tmpSplit[count($tmpSplit)-1];
+        $tmpSplit = explode("\\", $attributes->getName());
+        $entityType = $tmpSplit[count($tmpSplit) - 1];
         $this->setEntityType($entityType);
         $this->setEntityId($attributes->getIdentifierValues($entity));
-        $reflectionProperties = $attributes->getReflectionProperties( );
+        $reflectionProperties = $attributes->getReflectionProperties();
         $properties = array();
-        foreach($reflectionProperties as $property){
-            try{
-                $childEntity = $attributes->getFieldValue($entity,$property->getName());
-                if($childEntity instanceof PersistentCollection){
+        foreach ($reflectionProperties as $property) {
+            try {
+                $childEntity = $attributes->getFieldValue($entity, $property->getName());
+                if ($childEntity instanceof PersistentCollection) {
                     $collection = array();
-                    foreach($childEntity as $item){
+                    foreach ($childEntity as $item) {
                         $childAttributes = $factory->getMetadataFor(get_class($item));
                         $child = $childAttributes->getIdentifierValues($item);
-                        $itemSplit = explode("\\",$childAttributes->getName());
-                        $itemClass = $itemSplit[count($itemSplit)-1];
-                        $collection[$itemClass.'_CI'] = $child;
+                        $itemSplit = explode("\\", $childAttributes->getName());
+                        $itemClass = $itemSplit[count($itemSplit) - 1];
+                        $collection[$itemClass . '_CI'] = $child;
                     }
-                    $properties[$property->getName().'_C'] = $collection;
-                }
-                else{
+                    $properties[$property->getName() . '_C'] = $collection;
+                } else {
                     $childAttributes = $factory->getMetadataFor(get_class($childEntity));
                     $child = $childAttributes->getIdentifierValues($childEntity);
-                    $properties[$property->getName().'_AE'] = $child;
+                    $properties[$property->getName() . '_AE'] = $child;
                 }
-            }
-            catch(ContextErrorException $e){
-                $val = $attributes->getFieldValue($entity,$property->getName());
+            } catch (ContextErrorException $e) {
+                $val = $attributes->getFieldValue($entity, $property->getName());
                 $properties[$property->getName()] = $val;
                 continue;
             }

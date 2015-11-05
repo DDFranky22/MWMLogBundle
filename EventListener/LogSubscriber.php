@@ -264,6 +264,7 @@ class LogSubscriber implements EventSubscriber
      *
      * Good question! This function check if the entity is inside the list of loggable entities.
      * (P.s. take a cookie! You've earned it!)
+     * (P.P.s i'm sorry we are out of cookies! BibleThump )
      *
      * @param $object
      * @return bool
