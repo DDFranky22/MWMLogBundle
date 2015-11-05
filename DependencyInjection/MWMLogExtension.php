@@ -14,9 +14,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
-class MWMLogExtension extends Extension{
+class MWMLogExtension extends Extension
+{
 
-    public function load(array $configs, ContainerBuilder $container){
+    public function load(array $configs, ContainerBuilder $container)
+    {
 
         $processor = new Processor();
         $configuration = new Configuration();
@@ -25,7 +27,7 @@ class MWMLogExtension extends Extension{
 
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../Resources/config')
+            new FileLocator(__DIR__ . '/../Resources/config')
         );
 
         $container->setParameter('mwm_log.log_class', $config['log_class']);
@@ -42,12 +44,14 @@ class MWMLogExtension extends Extension{
         }
     }
 
-    public function getAlias(){
+    public function getAlias()
+    {
         return 'mwm_log';
     }
 
 
-    public function getConfiguration(array $configs, ContainerBuilder $container){
+    public function getConfiguration(array $configs, ContainerBuilder $container)
+    {
         return new Configuration($container->getParameter('doctrine.default_connection'));
     }
 

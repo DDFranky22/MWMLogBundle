@@ -9,7 +9,8 @@
 namespace MWM\LogBundle\Model;
 
 
-interface LogInterface {
+interface LogInterface
+{
 
     //public function getId();
 

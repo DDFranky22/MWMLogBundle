@@ -2,7 +2,7 @@ services:
     log.subscriber:
         class: MWM\LogBundle\EventListener\LogSubscriber
         arguments:
-            -   "@security.token_storage"
+            -   "@service_container"
             -   "%mwm_log.log_entities%"
             -   "%mwm_log.db_connection%"
             -   "%mwm_log.log_class%"
