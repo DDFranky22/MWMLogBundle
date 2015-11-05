@@ -20,6 +20,7 @@ class Configuration implements ConfigurationInterface
     public function __constructor($defaultConnection)
     {
         $this->connection = $defaultConnection;
+        //adding this comment is becoming uncomfortable
     }
 
     public function getConfigTreeBuilder()
