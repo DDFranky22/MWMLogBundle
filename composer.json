@@ -2,7 +2,6 @@
   "name": "mwm/log-bundle",
   "type": "symfony-bundle",
   "description": "Symfony MWMLogBundle",
-  "version": "0.0",
   "keywords": ["logging"],
   "homepage": "https://github.com/DDFranky22/MWMLogBundle",
   "license": "MIT",
